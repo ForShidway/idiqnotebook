@@ -11,9 +11,12 @@ import {
   Loader2,
   ExternalLink,
   Volume2,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 import { getYouTubeEmbedUrl, parseContentParagraphs } from "@/lib/utils";
-import type { VideoLessonItem } from "../page";
+import type { VideoLessonItem, VideoLessonPageItem } from "../page";
 import type { VocabularyItem } from "@/components/VocabularyTableSection";
 
 function VideoDetailContent() {
@@ -21,6 +24,7 @@ function VideoDetailContent() {
   const id = params?.id;
 
   const [lesson, setLesson] = useState<VideoLessonItem | null>(null);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [sidebarVocabs, setSidebarVocabs] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +46,7 @@ function VideoDetailContent() {
           throw new Error(videoJson.error || "Materi video tidak ditemukan.");
         }
         setLesson(videoJson.data);
+        setCurrentPageIndex(0);
 
         if (vocabRes.ok) {
           const vocabJson = await vocabRes.json();
@@ -92,13 +97,41 @@ function VideoDetailContent() {
     );
   }
 
-  const embedUrl = getYouTubeEmbedUrl(lesson.videoUrl);
-  const parsedParagraphs = parseContentParagraphs(lesson.content);
+  // Susun daftar halaman (maksimal 5 halaman), mendukung kompatibilitas data lama
+  const lessonPages: VideoLessonPageItem[] =
+    lesson.pages && lesson.pages.length > 0
+      ? lesson.pages
+      : [{ videoUrl: lesson.videoUrl, content: lesson.content }];
+
+  const totalPages = lessonPages.length;
+  const safePageIndex = Math.min(
+    Math.max(0, currentPageIndex),
+    totalPages - 1
+  );
+  const activePage = lessonPages[safePageIndex];
+
+  const activeVideoUrl = activePage.videoUrl || lesson.videoUrl;
+  const embedUrl = activePage.videoUrl
+    ? getYouTubeEmbedUrl(activePage.videoUrl)
+    : safePageIndex === 0
+      ? getYouTubeEmbedUrl(lesson.videoUrl)
+      : null;
+
+  const parsedParagraphs = parseContentParagraphs(activePage.content);
+
+  const handleGoToPage = (newIndex: number) => {
+    if (newIndex < 0 || newIndex >= totalPages) return;
+    setCurrentPageIndex(newIndex);
+    const topElement = document.getElementById("materi-detail-top");
+    if (topElement) {
+      topElement.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="w-[90%] max-w-[1280px] mx-auto py-8">
+    <div id="materi-detail-top" className="w-[90%] max-w-[1280px] mx-auto py-8">
       {/* Navigasi Kembali */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/videos"
           className="inline-flex items-center gap-2 text-sm font-bold text-[#0f2c59] hover:text-[#1b9c85] transition"
@@ -107,88 +140,145 @@ function VideoDetailContent() {
           Kembali ke Daftar Materi Video
         </Link>
 
-        <a
-          href={lesson.videoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#1b9c85] transition"
-        >
-          Buka di YouTube
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex items-center gap-4">
+          {totalPages > 1 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-[#15806d] text-xs font-bold">
+              <Layers className="w-3.5 h-3.5" />
+              Halaman {safePageIndex + 1} dari {totalPages}
+            </span>
+          )}
+
+          {activeVideoUrl && (
+            <a
+              href={activeVideoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#1b9c85] transition"
+            >
+              Buka di YouTube
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Container Utama */}
       <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden">
-        {/* 1. BAGIAN ATAS: Video Player Lebar Penuh & Responsif 16:9 */}
-        <div className="w-full bg-black aspect-video relative">
-          {embedUrl ? (
+        {/* 1. BAGIAN ATAS: Video Player Lebar Penuh & Responsif 16:9 (ditampilkan jika halaman ini memiliki video) */}
+        {embedUrl && (
+          <div className="w-full bg-black aspect-video relative">
             <iframe
+              key={embedUrl}
               src={embedUrl}
-              title={lesson.title}
+              title={`${lesson.title} - Halaman ${safePageIndex + 1}`}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 p-6 text-center">
-              <Video className="w-10 h-10 mb-2 text-slate-400" />
-              <p className="text-sm">
-                Format URL video tidak dapat di-embed secara langsung.
-              </p>
-              <a
-                href={lesson.videoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 px-4 py-2 rounded-md bg-[#1b9c85] text-white text-xs font-bold"
-              >
-                Tonton Video Asli
-              </a>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* 2. BAGIAN BAWAH VIDEO: Judul, Teks Materi (Paragraf Enter 2x) & Sidebar Kosakata */}
+        {/* 2. BAGIAN BAWAH VIDEO: Judul, Indikator Halaman, Teks Materi & Tombol Previous/Next */}
         <div className="p-6 sm:p-8">
-          {/* Header Judul Materi */}
-          <div className="border-b border-slate-200 pb-5 mb-6">
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-2 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-[#1b9c85]" />
-              <span>
-                Dipublikasikan pada{" "}
-                {new Date(lesson.createdAt).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
+          {/* Header Judul Materi & Tab Nomor Halaman */}
+          <div className="border-b border-slate-200 pb-5 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-slate-500 mb-2 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-[#1b9c85]" />
+                <span>
+                  Dipublikasikan pada{" "}
+                  {new Date(lesson.createdAt).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f2c59]">
+                {lesson.title}
+              </h1>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f2c59]">
-              {lesson.title}
-            </h1>
+
+            {/* Pemilih Halaman Cepat jika memiliki lebih dari 1 halaman */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {lessonPages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleGoToPage(idx)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer ${
+                      idx === safePageIndex
+                        ? "bg-[#0f2c59] text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Hal {idx + 1}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Grid Konten Teks & Sidebar Kosakata */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Kolom Teks Materi Penjelasan */}
-            <div className="lg:col-span-8">
-              <h2 className="text-base font-extrabold text-[#0f2c59] uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-5 bg-[#1b9c85] rounded-full inline-block" />
-                Teks Materi
-              </h2>
+            <div className="lg:col-span-8 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-extrabold text-[#0f2c59] uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-1.5 h-5 bg-[#1b9c85] rounded-full inline-block" />
+                    Teks Materi{" "}
+                    {totalPages > 1
+                      ? `— Halaman ${safePageIndex + 1}`
+                      : ""}
+                  </h2>
+                </div>
 
-              <div className="space-y-5 text-slate-800 text-base leading-relaxed">
-                {parsedParagraphs.map((lines, pIndex) => (
-                  <p key={pIndex} className="text-slate-800 leading-7">
-                    {lines.map((line, lIndex) => (
-                      <Fragment key={lIndex}>
-                        {line}
-                        {lIndex < lines.length - 1 && <br />}
-                      </Fragment>
-                    ))}
-                  </p>
-                ))}
+                <div className="space-y-5 text-slate-800 text-base leading-relaxed">
+                  {parsedParagraphs.map((lines, pIndex) => (
+                    <p key={pIndex} className="text-slate-800 leading-7">
+                      {lines.map((line, lIndex) => (
+                        <Fragment key={lIndex}>
+                          {line}
+                          {lIndex < lines.length - 1 && <br />}
+                        </Fragment>
+                      ))}
+                    </p>
+                  ))}
+                </div>
               </div>
+
+              {/* Navigasi Halaman Materi (Previous & Next) di Akhir Halaman */}
+              {totalPages > 1 && (
+                <div className="mt-10 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/70 p-4 rounded-md">
+                  <button
+                    type="button"
+                    onClick={() => handleGoToPage(safePageIndex - 1)}
+                    disabled={safePageIndex <= 0}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-xs sm:text-sm font-bold border border-slate-300 bg-white text-[#0f2c59] hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer shadow-2xs"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous (Halaman Sebelumnya)
+                  </button>
+
+                  <span className="text-xs sm:text-sm font-bold text-slate-600">
+                    Halaman{" "}
+                    <span className="text-[#0f2c59]">{safePageIndex + 1}</span>{" "}
+                    / <span className="text-[#1b9c85]">{totalPages}</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => handleGoToPage(safePageIndex + 1)}
+                    disabled={safePageIndex >= totalPages - 1}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-xs sm:text-sm font-bold bg-[#1b9c85] hover:bg-[#15806d] text-white disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer shadow-xs"
+                  >
+                    Next (Halaman Berikutnya)
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Kolom Sidebar Kosakata Pendukung */}

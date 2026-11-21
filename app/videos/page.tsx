@@ -11,11 +11,17 @@ import {
 } from "lucide-react";
 import { getYouTubeThumbnailUrl } from "@/lib/utils";
 
+export interface VideoLessonPageItem {
+  videoUrl: string;
+  content: string;
+}
+
 export interface VideoLessonItem {
   _id: string;
   title: string;
   videoUrl: string;
   content: string;
+  pages?: VideoLessonPageItem[];
   createdAt: string;
 }
 

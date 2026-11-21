@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
-import VideoLesson from "@/models/VideoLesson";
+import VideoLesson, { IVideoLessonPage } from "@/models/VideoLesson";
 import { verifyAdminAuth } from "@/lib/auth";
 import { extractYouTubeId } from "@/lib/utils";
 
@@ -68,32 +68,97 @@ export async function PUT(
 
     const body = await request.json();
     const title = String(body.title || "").trim();
-    const videoUrl = String(body.videoUrl || "").trim();
-    const content = String(body.content || "").trim();
+    const rawPages: unknown[] = Array.isArray(body.pages) ? body.pages : [];
 
-    if (!title || !videoUrl || !content) {
+    let normalizedPages: IVideoLessonPage[] = [];
+
+    if (rawPages.length > 0) {
+      if (rawPages.length > 5) {
+        return NextResponse.json(
+          { error: "Jumlah halaman materi maksimal adalah 5 halaman." },
+          { status: 400 }
+        );
+      }
+
+      for (let i = 0; i < rawPages.length; i++) {
+        const item = rawPages[i] as Record<string, unknown>;
+        const pVideoUrl = String(item?.videoUrl || "").trim();
+        const pContent = String(item?.content || "").trim();
+
+        if (!pContent) {
+          return NextResponse.json(
+            {
+              error: `Teks penjelasan pada Halaman ${i + 1} wajib diisi.`,
+            },
+            { status: 400 }
+          );
+        }
+
+        if (i === 0 && !pVideoUrl) {
+          return NextResponse.json(
+            { error: "Link Video YouTube pada Halaman 1 wajib diisi." },
+            { status: 400 }
+          );
+        }
+
+        if (pVideoUrl && !extractYouTubeId(pVideoUrl)) {
+          return NextResponse.json(
+            {
+              error: `Link Video pada Halaman ${i + 1} tidak valid. Gunakan link YouTube seperti https://www.youtube.com/watch?v=... atau https://youtu.be/...`,
+            },
+            { status: 400 }
+          );
+        }
+
+        normalizedPages.push({
+          videoUrl: pVideoUrl,
+          content: pContent,
+        });
+      }
+    } else {
+      const videoUrl = String(body.videoUrl || "").trim();
+      const content = String(body.content || "").trim();
+
+      if (!videoUrl || !content) {
+        return NextResponse.json(
+          {
+            error:
+              "Judul Materi, Link Video YouTube, dan Teks Penjelasan wajib diisi.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!extractYouTubeId(videoUrl)) {
+        return NextResponse.json(
+          {
+            error:
+              "Link Video tidak valid. Gunakan link YouTube seperti https://www.youtube.com/watch?v=... atau https://youtu.be/...",
+          },
+          { status: 400 }
+        );
+      }
+
+      normalizedPages = [{ videoUrl, content }];
+    }
+
+    if (!title) {
       return NextResponse.json(
-        {
-          error:
-            "Judul Materi, Link Video YouTube, dan Teks Penjelasan wajib diisi.",
-        },
+        { error: "Judul Materi wajib diisi." },
         { status: 400 }
       );
     }
 
-    if (!extractYouTubeId(videoUrl)) {
-      return NextResponse.json(
-        {
-          error:
-            "Link Video tidak valid. Gunakan link YouTube seperti https://www.youtube.com/watch?v=... atau https://youtu.be/...",
-        },
-        { status: 400 }
-      );
-    }
+    const firstPage = normalizedPages[0];
 
     const updated = await VideoLesson.findByIdAndUpdate(
       id,
-      { title, videoUrl, content },
+      {
+        title,
+        videoUrl: firstPage.videoUrl,
+        content: firstPage.content,
+        pages: normalizedPages,
+      },
       { new: true, runValidators: true }
     ).lean();
 

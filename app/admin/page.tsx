@@ -25,7 +25,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import type { VideoLessonItem } from "../videos/page";
+import type { VideoLessonItem, VideoLessonPageItem } from "../videos/page";
 import type { VocabularyItem } from "@/components/VocabularyTableSection";
 
 interface ImportSummary {
@@ -78,14 +78,15 @@ export default function AdminPage() {
   const [vocabTotalItems, setVocabTotalItems] = useState(0);
   const [deletingVocabId, setDeletingVocabId] = useState<string | null>(null);
 
-  // State Manajemen Video & Teks Materi
+  // State Manajemen Video & Teks Materi (Multi-Halaman Maksimal 5 Halaman)
   const [videos, setVideos] = useState<VideoLessonItem[]>([]);
   const [videosLoading, setVideosLoading] = useState(false);
   const [videoSearch, setVideoSearch] = useState("");
   const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
   const [videoTitle, setVideoTitle] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoContent, setVideoContent] = useState("");
+  const [lessonPages, setLessonPages] = useState<VideoLessonPageItem[]>([
+    { videoUrl: "", content: "" },
+  ]);
   const [videoSubmitting, setVideoSubmitting] = useState(false);
   const [videoFeedback, setVideoFeedback] = useState<{
     type: "success" | "error";
@@ -322,7 +323,29 @@ export default function AdminPage() {
     }
   };
 
-  // Handler Submit (Tambah / Edit) Materi Video
+  // Handler Ubah Nilai Halaman Materi
+  const handlePageFieldChange = (
+    index: number,
+    field: keyof VideoLessonPageItem,
+    value: string
+  ) => {
+    setLessonPages((prev) =>
+      prev.map((p, idx) => (idx === index ? { ...p, [field]: value } : p))
+    );
+  };
+
+  // Handler Checkbox "Tambahkan halaman lain" (Maksimal 5 Halaman)
+  const handleToggleNextPage = (currentIndex: number, checked: boolean) => {
+    if (checked) {
+      if (lessonPages.length >= 5) return;
+      setLessonPages((prev) => [...prev, { videoUrl: "", content: "" }]);
+    } else {
+      // Hapus halaman setelah currentIndex
+      setLessonPages((prev) => prev.slice(0, currentIndex + 1));
+    }
+  };
+
+  // Handler Submit (Tambah / Edit) Materi Video Multi-Halaman
   const handleVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVideoSubmitting(true);
@@ -334,6 +357,8 @@ export default function AdminPage() {
         : "/api/videos";
       const method = editingVideoId ? "PUT" : "POST";
 
+      const firstPage = lessonPages[0] || { videoUrl: "", content: "" };
+
       const res = await fetch(endpoint, {
         method,
         headers: {
@@ -342,8 +367,9 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           title: videoTitle,
-          videoUrl,
-          content: videoContent,
+          videoUrl: firstPage.videoUrl,
+          content: firstPage.content,
+          pages: lessonPages,
         }),
       });
 
@@ -358,14 +384,13 @@ export default function AdminPage() {
       setVideoFeedback({
         type: "success",
         text: editingVideoId
-          ? "Materi video berhasil diperbarui!"
-          : "Materi video baru berhasil ditambahkan!",
+          ? `Materi video (${lessonPages.length} halaman) berhasil diperbarui!`
+          : `Materi video baru (${lessonPages.length} halaman) berhasil ditambahkan!`,
       });
 
       setEditingVideoId(null);
       setVideoTitle("");
-      setVideoUrl("");
-      setVideoContent("");
+      setLessonPages([{ videoUrl: "", content: "" }]);
       loadVideos(videoSearch);
     } catch (err) {
       setVideoFeedback({
@@ -383,8 +408,21 @@ export default function AdminPage() {
   const handleEditVideoClick = (video: VideoLessonItem) => {
     setEditingVideoId(video._id);
     setVideoTitle(video.title);
-    setVideoUrl(video.videoUrl);
-    setVideoContent(video.content);
+    if (video.pages && video.pages.length > 0) {
+      setLessonPages(
+        video.pages.slice(0, 5).map((p) => ({
+          videoUrl: p.videoUrl || "",
+          content: p.content || "",
+        }))
+      );
+    } else {
+      setLessonPages([
+        {
+          videoUrl: video.videoUrl || "",
+          content: video.content || "",
+        },
+      ]);
+    }
     setVideoFeedback(null);
     setActiveTab("tambah");
     setTimeout(() => {
@@ -772,8 +810,7 @@ export default function AdminPage() {
                     onClick={() => {
                       setEditingVideoId(null);
                       setVideoTitle("");
-                      setVideoUrl("");
-                      setVideoContent("");
+                      setLessonPages([{ videoUrl: "", content: "" }]);
                     }}
                     className="px-3 py-1.5 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer self-start sm:self-auto"
                   >
@@ -784,7 +821,7 @@ export default function AdminPage() {
 
               <form
                 onSubmit={handleVideoSubmit}
-                className="p-5 sm:p-6 space-y-5"
+                className="p-5 sm:p-6 space-y-6"
               >
                 {videoFeedback && (
                   <div
@@ -803,56 +840,137 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-800 mb-1.5">
-                      Judul Materi Video
-                    </label>
-                    <input
-                      type="text"
-                      value={videoTitle}
-                      onChange={(e) => setVideoTitle(e.target.value)}
-                      placeholder="Contoh: Belajar English Slang Populer"
-                      className="w-full px-3.5 py-2.5 text-sm text-slate-900 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-800 mb-1.5">
-                      Link Video YouTube
-                    </label>
-                    <input
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                      placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
-                      className="w-full px-3.5 py-2.5 text-sm text-slate-900 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85]"
-                      required
-                    />
-                  </div>
-                </div>
-
+                {/* Input Judul Materi Utama */}
                 <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                    <label className="block text-xs font-bold uppercase text-slate-800">
-                      Teks Penjelasan Materi
-                    </label>
-                    <span className="text-[11px] text-[#15806d] font-semibold">
-                      * Tips: Tekan <strong>Enter 2x</strong> (baris kosong)
-                      untuk paragraf baru (<code>&lt;p&gt;</code>), atau{" "}
-                      <strong>Enter 1x</strong> untuk baris baru (
-                      <code>&lt;br /&gt;</code>).
-                    </span>
-                  </div>
-                  <textarea
-                    rows={8}
-                    value={videoContent}
-                    onChange={(e) => setVideoContent(e.target.value)}
-                    placeholder={`Tulis penjelasan materi di sini...\n\nTekan Enter 2 kali seperti ini agar otomatis terpisah menjadi paragraf baru yang rapi saat dibaca pengunjung.`}
-                    className="w-full px-3.5 py-3 text-sm text-slate-900 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85] leading-relaxed"
+                  <label className="block text-xs font-bold uppercase text-slate-800 mb-1.5">
+                    Judul Materi Utama
+                  </label>
+                  <input
+                    type="text"
+                    value={videoTitle}
+                    onChange={(e) => setVideoTitle(e.target.value)}
+                    placeholder="Contoh: Belajar English Slang Populer"
+                    className="w-full px-3.5 py-2.5 text-sm text-slate-900 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85]"
                     required
                   />
+                </div>
+
+                {/* Daftar Halaman Materi (Maksimal 5 Halaman) */}
+                <div className="space-y-6">
+                  {lessonPages.map((pageItem, pageIdx) => {
+                    const hasNextPage = pageIdx < lessonPages.length - 1;
+                    const canAddMorePage = pageIdx < 4; // Maksimal 5 halaman (index 0..4)
+
+                    return (
+                      <div
+                        key={pageIdx}
+                        className="p-5 rounded-md bg-slate-50 border border-slate-200 space-y-4"
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#0f2c59] text-white text-xs font-bold">
+                            Halaman {pageIdx + 1} dari Maksimal 5
+                          </span>
+
+                          {pageIdx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setLessonPages((prev) =>
+                                  prev.filter((_, i) => i !== pageIdx)
+                                )
+                              }
+                              className="inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Hapus Halaman {pageIdx + 1}
+                            </button>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-800 mb-1.5">
+                            Link Video YouTube — Halaman {pageIdx + 1}{" "}
+                            {pageIdx > 0 && (
+                              <span className="text-slate-500 font-normal lowercase">
+                                (opsional untuk halaman lanjutan)
+                              </span>
+                            )}
+                          </label>
+                          <input
+                            type="url"
+                            value={pageItem.videoUrl}
+                            onChange={(e) =>
+                              handlePageFieldChange(
+                                pageIdx,
+                                "videoUrl",
+                                e.target.value
+                              )
+                            }
+                            placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
+                            className="w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85]"
+                            required={pageIdx === 0}
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                            <label className="block text-xs font-bold uppercase text-slate-800">
+                              Teks Penjelasan Materi — Halaman {pageIdx + 1}
+                            </label>
+                            <span className="text-[11px] text-[#15806d] font-semibold">
+                              * Tips: Tekan <strong>Enter 2x</strong> untuk
+                              paragraf baru (<code>&lt;p&gt;</code>), atau{" "}
+                              <strong>Enter 1x</strong> untuk baris baru.
+                            </span>
+                          </div>
+                          <textarea
+                            rows={7}
+                            value={pageItem.content}
+                            onChange={(e) =>
+                              handlePageFieldChange(
+                                pageIdx,
+                                "content",
+                                e.target.value
+                              )
+                            }
+                            placeholder={`Tulis penjelasan materi Halaman ${pageIdx + 1} di sini...\n\nTekan Enter 2 kali seperti ini agar otomatis terpisah menjadi paragraf baru yang rapi.`}
+                            className="w-full px-3.5 py-3 text-sm text-slate-900 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1b9c85] leading-relaxed"
+                            required
+                          />
+                        </div>
+
+                        {/* Checkbox "Tambahkan halaman lain" di akhir setiap halaman (sampai batas maksimal 5 halaman) */}
+                        {canAddMorePage ? (
+                          <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
+                            <label className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-bold text-[#0f2c59] cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={hasNextPage}
+                                onChange={(e) =>
+                                  handleToggleNextPage(
+                                    pageIdx,
+                                    e.target.checked
+                                  )
+                                }
+                                className="w-4 h-4 rounded border-slate-300 text-[#1b9c85] focus:ring-[#1b9c85] cursor-pointer"
+                              />
+                              <span>
+                                Tambahkan halaman lain (Halaman {pageIdx + 2})
+                              </span>
+                            </label>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Maksimal 5 halaman per materi
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="pt-2 border-t border-slate-200/80 text-xs font-bold text-amber-700">
+                            Batas maksimal 5 halaman untuk 1 materi telah
+                            tercapai.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -870,8 +988,8 @@ export default function AdminPage() {
                       <>
                         <Plus className="w-4 h-4" />
                         {editingVideoId
-                          ? "Simpan Perubahan Materi"
-                          : "Publikasikan Materi Video"}
+                          ? `Simpan Perubahan Materi (${lessonPages.length} Halaman)`
+                          : `Publikasikan Materi Video (${lessonPages.length} Halaman)`}
                       </>
                     )}
                   </button>
