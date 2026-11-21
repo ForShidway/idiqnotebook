@@ -275,7 +275,7 @@ export default function HomePage() {
                       href={`/videos/${video._id}`}
                       className="mt-4 w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-[#1b9c85] hover:bg-[#15806d] text-white text-xs font-bold transition"
                     >
-                      Tonton Materi
+                      Lihat Materi
                     </Link>
                   </div>
                 </div>
