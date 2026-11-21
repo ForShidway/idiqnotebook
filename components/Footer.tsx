@@ -78,7 +78,7 @@ export default function Footer() {
             <ul className="space-y-2.5 text-sm text-slate-200">
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#38c6b0] shrink-0" />
-                <span>+62 812-3456-7890</span>
+                <span>+62 ***********</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#38c6b0] shrink-0" />
@@ -98,7 +98,7 @@ export default function Footer() {
             &copy; 2026 IdiqNotebook. All Rights Reserved.
           </p>
           <p className="text-slate-300/80">
-            Catatan Materi &amp; Kosakata Bahasa Inggris &bull; Tersimpan Permanen di Cloud
+            Catatan Materi &amp; Kosakata Bahasa Inggris &bull;
           </p>
         </div>
       </div>
