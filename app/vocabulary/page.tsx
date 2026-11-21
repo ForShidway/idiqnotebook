@@ -12,7 +12,7 @@ export default function VocabularyPage() {
     <div className="flex flex-col">
       {/* Sub-header Banner Navy-Teal Lembut & Nyaman di Mata */}
       <div className="bg-gradient-to-r from-[#0b2239] via-[#12385b] to-[#1a6b72] text-white border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="w-[90%] max-w-[1280px] mx-auto py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#38c6b0] mb-1">
               <BookOpen className="w-4 h-4" />
@@ -30,7 +30,7 @@ export default function VocabularyPage() {
       </div>
 
       {/* Main Table Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <div className="w-[90%] max-w-[1280px] mx-auto py-8">
         <VocabularyTableSection showTitle={false} />
       </div>
     </div>

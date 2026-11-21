@@ -76,7 +76,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-12 bg-[#f1f5f9]">
+    <div className="flex-1 flex items-center justify-center py-12 bg-[#f1f5f9]">
+      <div className="w-[90%] max-w-[1280px] mx-auto flex justify-center">
       <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-lg p-7 sm:p-9">
         {/* Logo IdiqNotebook di Atas */}
         <div className="flex justify-center mb-5">
@@ -218,6 +219,7 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+      </div>
       </div>
     </div>
   );

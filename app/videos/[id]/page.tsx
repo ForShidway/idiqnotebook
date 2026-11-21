@@ -63,7 +63,7 @@ function VideoDetailContent() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+      <div className="w-[90%] max-w-[1280px] mx-auto py-20 text-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#1b9c85] mx-auto mb-3" />
         <p className="text-sm text-slate-600">Memuat materi video...</p>
       </div>
@@ -72,7 +72,7 @@ function VideoDetailContent() {
 
   if (error || !lesson) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="w-[90%] max-w-[1280px] mx-auto py-16">
         <div className="bg-white rounded-md border border-red-200 p-8 text-center">
           <p className="text-lg font-bold text-red-700 mb-2">
             {error || "Materi video tidak ditemukan"}
@@ -96,7 +96,7 @@ function VideoDetailContent() {
   const parsedParagraphs = parseContentParagraphs(lesson.content);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <div className="w-[90%] max-w-[1280px] mx-auto py-8">
       {/* Navigasi Kembali */}
       <div className="mb-5 flex items-center justify-between">
         <Link
@@ -247,7 +247,7 @@ export default function VideoDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <div className="w-[90%] max-w-[1280px] mx-auto py-20 text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#1b9c85] mx-auto mb-3" />
           <p className="text-sm text-slate-600">Memuat materi video...</p>
         </div>

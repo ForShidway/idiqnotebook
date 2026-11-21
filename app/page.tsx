@@ -64,7 +64,7 @@ export default function HomePage() {
     <div className="flex flex-col">
       {/* HERO SECTION - Warna Navy ke Soft Teal yang Nyaman di Mata & Tidak Menyilaukan */}
       <section className="relative bg-gradient-to-r from-[#0e243e] via-[#133859] to-[#1f6a6c] text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 md:py-16">
+        <div className="w-[90%] max-w-[1280px] mx-auto pt-10 pb-24 md:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Kolom Kiri: Headline, CTA & Quick Search */}
             <div className="lg:col-span-6 space-y-6">
@@ -185,12 +185,12 @@ export default function HomePage() {
       </section>
 
       {/* TABEL KOSAKATA UTAMA (100 data / halaman) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+      <section className="w-[90%] max-w-[1280px] mx-auto py-12">
         <VocabularyTableSection initialSearch={submittedSearch} showTitle />
       </section>
 
       {/* PREVIEW MATERI VIDEO PEMBELAJARAN TERBARU */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
+      <section className="w-[90%] max-w-[1280px] mx-auto pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-2xl font-extrabold text-[#0f2c59] flex items-center gap-2.5">

@@ -5,7 +5,7 @@ import { Phone, Mail, Globe } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-[#0b2239] via-[#12385b] to-[#1a6b72] text-white mt-auto border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+      <div className="w-[90%] max-w-[1280px] mx-auto pt-12 pb-8">
         {/* 3 Kolom Utama Sesuai Gambar Referensi Footer */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-white/15">
           {/* Kolom 1: Logo & Deskripsi Singkat */}

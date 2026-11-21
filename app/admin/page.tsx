@@ -436,7 +436,7 @@ export default function AdminPage() {
     <div className="flex flex-col">
       {/* Banner Header Admin Navy-Teal Lembut & Nyaman di Mata */}
       <div className="bg-gradient-to-r from-[#0b2239] via-[#12385b] to-[#1a6b72] text-white border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="w-[90%] max-w-[1280px] mx-auto py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#38c6b0] mb-1">
               <ShieldCheck className="w-4 h-4" />
@@ -464,7 +464,7 @@ export default function AdminPage() {
 
       {/* Menu Sub-Navigasi Halaman Admin */}
       <div className="bg-white border-b border-slate-200 sticky top-18 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[90%] max-w-[1280px] mx-auto">
           <div className="flex flex-wrap items-center gap-2 py-3">
             <button
               type="button"
@@ -515,7 +515,7 @@ export default function AdminPage() {
       </div>
 
       {/* Konten Utama Admin */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 w-full">
+      <div className="w-[90%] max-w-[1280px] mx-auto py-8 space-y-10">
         {/* TAB 1: TAMBAH & IMPORT DATA */}
         {activeTab === "tambah" && (
           <div className="space-y-10">

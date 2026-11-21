@@ -43,7 +43,7 @@ function NavbarInner() {
 
   return (
     <header className="sticky top-0 z-50 bg-white text-slate-800 shadow-sm border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-[90%] max-w-[1280px] mx-auto">
         <div className="flex items-center justify-between h-18">
           {/* Logo Brand: /image/IN-logo2.png */}
           <Link
@@ -143,7 +143,8 @@ function NavbarInner() {
 
       {/* Mobile Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-4 space-y-2 shadow-lg">
+        <div className="md:hidden bg-white border-t border-slate-200 pt-3 pb-4 shadow-lg">
+          <div className="w-[90%] max-w-[1280px] mx-auto space-y-2">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -192,6 +193,7 @@ function NavbarInner() {
                 </>
               )}
             </Link>
+          </div>
           </div>
         </div>
       )}
