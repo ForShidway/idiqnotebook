@@ -2,8 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import VideoLesson, { IVideoLessonPage } from "@/models/VideoLesson";
+import Vocabulary from "@/models/Vocabulary";
 import { verifyAdminAuth } from "@/lib/auth";
 import { extractYouTubeId } from "@/lib/utils";
+
+/**
+ * Mengekstrak kata-kata kandidat dari seluruh halaman teks materi
+ * untuk dicocokkan secara efisien dengan koleksi Vocabulary di MongoDB.
+ */
+function extractCandidateTokens(text: string): string[] {
+  if (!text) return [];
+  const words = text
+    .toLowerCase()
+    .split(/[^a-z0-9'-]+/i)
+    .map((w) => w.replace(/^['-]+|['-]+$/g, "").trim())
+    .filter((w) => w.length > 0);
+
+  const candidateSet = new Set<string>();
+  for (let i = 0; i < words.length; i++) {
+    candidateSet.add(words[i]);
+    // Dukung juga frasa 2 kata dan 3 kata jika ada di Tabel Kata
+    if (i + 1 < words.length) {
+      candidateSet.add(`${words[i]} ${words[i + 1]}`);
+    }
+    if (i + 2 < words.length) {
+      candidateSet.add(`${words[i]} ${words[i + 1]} ${words[i + 2]}`);
+    }
+  }
+  return Array.from(candidateSet);
+}
 
 export async function GET(
   _request: NextRequest,
@@ -29,7 +56,33 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ data: lesson });
+    // Gabungkan seluruh teks dari semua halaman materi untuk mencari kata yang terdaftar di Tabel Kata
+    const allTexts = [
+      lesson.content || "",
+      ...(Array.isArray(lesson.pages)
+        ? lesson.pages.map((p) => p.content || "")
+        : []),
+    ].join(" ");
+
+    const candidateTokens = extractCandidateTokens(allTexts);
+
+    const matchedVocabularies =
+      candidateTokens.length > 0
+        ? await Vocabulary.find(
+            { englishWordNormalized: { $in: candidateTokens } },
+            {
+              englishWord: 1,
+              englishWordNormalized: 1,
+              indonesianTranslate: 1,
+              weSpoke: 1,
+            }
+          ).lean()
+        : [];
+
+    return NextResponse.json({
+      data: lesson,
+      matchedVocabularies,
+    });
   } catch (error) {
     console.error("GET /api/videos/[id] error:", error);
     return NextResponse.json(

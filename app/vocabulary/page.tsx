@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 export const metadata = {
   title: "Tabel Kata Kosakata — IdiqNotebook",
   description:
-    "Tabel kosakata bahasa Inggris dengan terjemahan Indonesia dan cara baca We Spoke (100 data per halaman).",
+    "Tabel kosakata bahasa Inggris dengan terjemahan Indonesia dan cara baca How to Say (100 data per halaman).",
 };
 
 export default function VocabularyPage() {
@@ -23,7 +23,7 @@ export default function VocabularyPage() {
             </h1>
             <p className="text-sm text-slate-200 mt-1">
               Menampilkan 100 kosakata per halaman lengkap dengan terjemahan
-              Indonesia dan panduan cara baca (<em>We Spoke</em>).
+              Indonesia dan panduan cara baca (<em>How to Say</em>).
             </p>
           </div>
         </div>

@@ -181,17 +181,17 @@ export default function AdminPage() {
       {
         "English word": "Accomplish",
         "Indonesian translate": "Menyelesaikan / Mencapai",
-        "We Spoke (Cara Baca)": "e-kom-plish",
+        "How to Say (Cara Baca)": "e-kom-plish",
       },
       {
         "English word": "Perseverance",
         "Indonesian translate": "Ketekunan / Kegigihan",
-        "We Spoke (Cara Baca)": "per-se-ver-ens",
+        "How to Say (Cara Baca)": "per-se-ver-ens",
       },
       {
         "English word": "Knowledge",
         "Indonesian translate": "Pengetahuan",
-        "We Spoke (Cara Baca)": "no-lij",
+        "How to Say (Cara Baca)": "no-lij",
       },
     ];
 
@@ -605,9 +605,10 @@ export default function AdminPage() {
                       </li>
                       <li>
                         <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold text-[#0f2c59]">
-                          We Spoke (Cara Baca)
+                          How to Say (Cara Baca)
                         </code>{" "}
-                        — Panduan pelafalan / cara baca
+                        — Panduan pelafalan / cara baca (juga mendukung header{" "}
+                        <code>We Spoke (Cara Baca)</code>)
                       </li>
                     </ul>
                   </div>
@@ -753,7 +754,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-800 mb-1">
-                      We Spoke (Cara Baca)
+                      How to Say (Cara Baca)
                     </label>
                     <input
                       type="text"
@@ -1057,7 +1058,7 @@ export default function AdminPage() {
                       Indonesian Translate
                     </th>
                     <th className="py-3.5 px-4 font-bold">
-                      We Spoke (Cara Baca)
+                      How to Say (Cara Baca)
                     </th>
                     <th className="py-3.5 px-4 font-bold text-right">Aksi</th>
                   </tr>

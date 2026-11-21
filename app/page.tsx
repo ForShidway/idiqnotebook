@@ -70,19 +70,18 @@ export default function HomePage() {
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#7fe3d5] text-xs font-bold tracking-wide uppercase">
                 <Sparkles className="w-3.5 h-3.5 text-[#38c6b0]" />
-                Catatan Belajar &amp; Dokumentasi Bahasa Inggris
+                Catatan Belajar
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white">
                 Catatan Materi &amp; <br />
-                <span className="text-[#5eead4]">Kosakata Bahasa Inggrisku</span>
+                <span className="text-[#5eead4]">Kosakata Bahasa Inggris</span>
               </h1>
 
               <p className="text-slate-200 text-base sm:text-lg max-w-xl leading-relaxed">
-                Tempat menyimpan rangkuman materi video yang sudah dipelajari
-                serta kumpulan kosakata baru yang ditemukan lengkap dengan
-                terjemahan dan cara bacanya (<em>We Spoke</em>), agar mudah
-                dibuka dan diulang kembali kapan saja.
+                Tempat menyimpan rangkuman materi yang sudah dipelajari
+                dan kumpulan kosakata baru yang ditemukan lengkap dengan
+                terjemahan dan cara bacanya .
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -98,7 +97,7 @@ export default function HomePage() {
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 transition"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  Buka Catatan Materi
+                  Buka Materi
                 </Link>
               </div>
 
@@ -184,9 +183,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TABEL KOSAKATA UTAMA (100 data / halaman) */}
+      {/* TABEL KOSAKATA UTAMA DI BERANDA (15 data + baris ke-16 Lihat Tabel Lengkapnya) */}
       <section className="w-[90%] max-w-[1280px] mx-auto py-12">
-        <VocabularyTableSection initialSearch={submittedSearch} showTitle />
+        <VocabularyTableSection
+          initialSearch={submittedSearch}
+          showTitle
+          limitPerPage={15}
+          isPreview
+        />
       </section>
 
       {/* PREVIEW MATERI VIDEO PEMBELAJARAN TERBARU */}

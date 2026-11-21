@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Search,
   ChevronLeft,
@@ -9,6 +10,7 @@ import {
   Volume2,
   Loader2,
   RefreshCw,
+  ArrowRight,
 } from "lucide-react";
 
 export interface VocabularyItem {
@@ -32,16 +34,20 @@ interface PaginationMeta {
 interface VocabularyTableSectionProps {
   initialSearch?: string;
   showTitle?: boolean;
+  limitPerPage?: number;
+  isPreview?: boolean;
 }
 
 export default function VocabularyTableSection({
   initialSearch = "",
   showTitle = true,
+  limitPerPage = 100,
+  isPreview = false,
 }: VocabularyTableSectionProps) {
   const [items, setItems] = useState<VocabularyItem[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    limit: 100,
+    limit: limitPerPage,
     totalItems: 0,
     totalPages: 1,
     hasNextPage: false,
@@ -59,7 +65,7 @@ export default function VocabularyTableSection({
       try {
         const params = new URLSearchParams({
           page: String(pageNumber),
-          limit: "100",
+          limit: String(limitPerPage),
         });
         if (searchQuery.trim()) {
           params.set("search", searchQuery.trim());
@@ -78,7 +84,7 @@ export default function VocabularyTableSection({
         setPagination(
           json.pagination || {
             page: pageNumber,
-            limit: 100,
+            limit: limitPerPage,
             totalItems: 0,
             totalPages: 1,
             hasNextPage: false,
@@ -95,7 +101,7 @@ export default function VocabularyTableSection({
         setLoading(false);
       }
     },
-    []
+    [limitPerPage]
   );
 
   useEffect(() => {
@@ -163,7 +169,10 @@ export default function VocabularyTableSection({
               <span className="font-bold text-[#1b9c85]">
                 {pagination.totalItems.toLocaleString("id-ID")}
               </span>{" "}
-              kosakata terdaftar (100 kata / halaman)
+              kosakata terdaftar{" "}
+              {isPreview
+                ? `(${limitPerPage} kata di beranda)`
+                : `(${limitPerPage} kata / halaman)`}
             </p>
           </div>
 
@@ -236,7 +245,7 @@ export default function VocabularyTableSection({
                   Indonesian Translate
                 </th>
                 <th className="py-3.5 px-4 sm:px-6 font-bold">
-                  We Spoke (Cara Baca)
+                  How to Say (Cara Baca)
                 </th>
               </tr>
             </thead>
@@ -268,87 +277,111 @@ export default function VocabularyTableSection({
                   </td>
                 </tr>
               ) : (
-                items.map((item, idx) => (
-                  <tr
-                    key={item._id}
-                    className="hover:bg-teal-50/50 transition-colors odd:bg-white even:bg-slate-50/60"
-                  >
-                    <td className="py-3 px-4 sm:px-6 text-center font-semibold text-slate-500">
-                      {startIndex + idx + 1}
-                    </td>
-                    <td className="py-3 px-4 sm:px-6 font-extrabold text-[#0f2c59]">
-                      {item.englishWord}
-                    </td>
-                    <td className="py-3 px-4 sm:px-6 text-slate-700 font-medium">
-                      {item.indonesianTranslate}
-                    </td>
-                    <td className="py-3 px-4 sm:px-6">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-teal-50 text-[#15806d] font-semibold text-xs sm:text-sm border border-teal-200">
-                        <Volume2 className="w-3.5 h-3.5 shrink-0 text-[#1b9c85]" />
-                        {item.weSpoke}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                <>
+                  {items.map((item, idx) => (
+                    <tr
+                      key={item._id}
+                      className="hover:bg-teal-50/50 transition-colors odd:bg-white even:bg-slate-50/60"
+                    >
+                      <td className="py-3 px-4 sm:px-6 text-center font-semibold text-slate-500">
+                        {startIndex + idx + 1}
+                      </td>
+                      <td className="py-3 px-4 sm:px-6 font-extrabold text-[#0f2c59]">
+                        {item.englishWord}
+                      </td>
+                      <td className="py-3 px-4 sm:px-6 text-slate-700 font-medium">
+                        {item.indonesianTranslate}
+                      </td>
+                      <td className="py-3 px-4 sm:px-6">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-teal-50 text-[#15806d] font-semibold text-xs sm:text-sm border border-teal-200">
+                          <Volume2 className="w-3.5 h-3.5 shrink-0 text-[#1b9c85]" />
+                          {item.weSpoke}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Baris ke-16 di Samping Kanan Bawah Khusus di Beranda (isPreview) */}
+                  {isPreview && (
+                    <tr className="bg-slate-50/90 border-t border-slate-200">
+                      <td
+                        colSpan={4}
+                        className="py-3.5 px-4 sm:px-6 text-right"
+                      >
+                        <Link
+                          href="/vocabulary"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#0f2c59] hover:bg-[#163d7a] text-white text-xs sm:text-sm font-bold transition shadow-xs"
+                        >
+                          Lihat Tabel Lengkapnya
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Server-Side Pagination Footer (100 item / halaman) */}
-        <div className="p-4 sm:px-6 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs sm:text-sm text-slate-600">
-            Halaman{" "}
-            <span className="font-bold text-[#0f2c59]">{pagination.page}</span>{" "}
-            dari{" "}
-            <span className="font-bold text-[#0f2c59]">
-              {pagination.totalPages}
-            </span>{" "}
-            &bull; Total{" "}
-            <span className="font-bold text-[#1b9c85]">
-              {pagination.totalItems.toLocaleString("id-ID")}
-            </span>{" "}
-            kata
-          </div>
+        {/* Server-Side Pagination Footer (Hanya ditampilkan pada halaman Tabel Kata penuh / bukan preview) */}
+        {!isPreview && (
+          <div className="p-4 sm:px-6 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs sm:text-sm text-slate-600">
+              Halaman{" "}
+              <span className="font-bold text-[#0f2c59]">
+                {pagination.page}
+              </span>{" "}
+              dari{" "}
+              <span className="font-bold text-[#0f2c59]">
+                {pagination.totalPages}
+              </span>{" "}
+              &bull; Total{" "}
+              <span className="font-bold text-[#1b9c85]">
+                {pagination.totalItems.toLocaleString("id-ID")}
+              </span>{" "}
+              kata
+            </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={!pagination.hasPrevPage || loading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </button>
-
-            {getPageNumbers().map((pageNum) => (
+            <div className="flex items-center gap-1.5">
               <button
-                key={pageNum}
                 type="button"
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
-                  pageNum === pagination.page
-                    ? "bg-[#0f2c59] text-white shadow-xs"
-                    : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
-                }`}
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={!pagination.hasPrevPage || loading}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
               >
-                {pageNum}
+                <ChevronLeft className="w-4 h-4" />
+                Previous
               </button>
-            ))}
 
-            <button
-              type="button"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={!pagination.hasNextPage || loading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              {getPageNumbers().map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => handlePageChange(pageNum)}
+                  disabled={loading}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md text-xs sm:text-sm font-bold transition cursor-pointer ${
+                    pageNum === pagination.page
+                      ? "bg-[#0f2c59] text-white shadow-xs"
+                      : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={!pagination.hasNextPage || loading}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

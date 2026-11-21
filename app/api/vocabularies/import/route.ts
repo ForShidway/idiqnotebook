@@ -117,6 +117,8 @@ export async function POST(request: NextRequest) {
       ]);
 
       const weSpoke = findColumnValue(row, [
+        "how to say (cara baca)",
+        "how to say",
         "we spoke (cara baca)",
         "we spoke",
         "cara baca",
@@ -150,7 +152,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Tidak ditemukan kolom yang sesuai. Pastikan file Excel memiliki header kolom: 'English word', 'Indonesian translate', dan 'We Spoke (Cara Baca)'.",
+            "Tidak ditemukan kolom yang sesuai. Pastikan file Excel memiliki header kolom: 'English word', 'Indonesian translate', dan 'How to Say (Cara Baca)'.",
         },
         { status: 400 }
       );
